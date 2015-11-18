@@ -357,6 +357,13 @@ angular.module("leaflet-directive").service('leafletMarkersHelpers', function ($
                 // There was a different previous message so we update it
                 marker.setPopupContent(markerData.message);
             }
+            
+            var updatedFocus = false;
+            if ((markerData.focus !== true && oldMarkerData.focus === true) ||
+                (markerData.focus === true && ( !isDefined(oldMarkerData.focus) || oldMarkerData.focus === false) || 
+                (isInitializing && markerData.focus === true))) {
+                updatedFocus = true;
+            }
 
             // Update the focus property
             var updatedFocus = false;
