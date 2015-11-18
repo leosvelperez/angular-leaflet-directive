@@ -3406,16 +3406,17 @@ angular.module("leaflet-directive").directive('controls', function (leafletLogge
                     // Delete controls from the array
                     for (var name in leafletControls) {
                         if (!isDefined(newControls[name])) {
-                            if (map.hasControl(leafletControls[name])) {
+                             try{
                                 map.removeControl(leafletControls[name]);
-                            }
+                             }catch(err){
+                                 console.log(err);
+                             }
                             delete leafletControls[name];
                         }
                     }
 
                     for (var newName in newControls) {
                         var control;
-
                         var controlType = isDefined(newControls[newName].type) ? newControls[newName].type : newName;
 
                         if (!isValidControlType(controlType)) {
