@@ -358,12 +358,19 @@ angular.module("leaflet-directive").service('leafletMarkersHelpers', function ($
                 marker.setPopupContent(markerData.message);
             }
 
-            markerData.focus = oldMarkerData.focus;
-            if (markerData.focus) {
-            	marker.openPopup();
-                _manageOpenPopup(marker, markerData, map);
-            } else {
-            	marker.closePopup();
+            // Update the focus property
+            var updatedFocus = false;
+            if (markerData.focus !== true && oldMarkerData.focus === true) {
+                // If there was a focus property and was true we turn it off
+                marker.closePopup();
+                updatedFocus = true;
+            }
+
+            // The markerData.focus property must be true so we update if there wasn't a previous value or it wasn't true
+            if (markerData.focus === true && ( !isDefined(oldMarkerData.focus) || oldMarkerData.focus === false) || (isInitializing && markerData.focus === true)) {
+                // Reopen the popup when focus is still true
+                marker.openPopup();
+                updatedFocus = true;
             }
 
             // zIndexOffset adjustment
