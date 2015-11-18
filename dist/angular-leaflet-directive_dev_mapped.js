@@ -1,5 +1,5 @@
 /*!
-*  angular-leaflet-directive 0.8.8 2015-09-16
+*  angular-leaflet-directive 0.8.8 2015-11-18
 *  angular-leaflet-directive - An AngularJS directive to easily interact with Leaflet maps
 *  git: https://github.com/tombatossals/angular-leaflet-directive
 */
@@ -2036,7 +2036,7 @@ angular.module("leaflet-directive").factory('leafletLegendHelpers', function () 
 	return {
 		getOnAddLegend: _getOnAddLegend,
 		getOnAddArrayLegend: _getOnAddArrayLegend,
-		updateLegend: _updateLegend,
+		updateLegend: _updateLegend
 	};
 });
 
@@ -2573,20 +2573,20 @@ angular.module("leaflet-directive").service('leafletMarkersHelpers', function ($
                 // There was a different previous message so we update it
                 marker.setPopupContent(markerData.message);
             }
-
-            // Update the focus property
+            
             var updatedFocus = false;
-            if (markerData.focus !== true && oldMarkerData.focus === true) {
-                // If there was a focus property and was true we turn it off
-                marker.closePopup();
+            if ((markerData.focus !== true && oldMarkerData.focus === true) ||
+                (markerData.focus === true && ( !isDefined(oldMarkerData.focus) || oldMarkerData.focus === false) || 
+                (isInitializing && markerData.focus === true))) {
                 updatedFocus = true;
             }
 
-            // The markerData.focus property must be true so we update if there wasn't a previous value or it wasn't true
-            if (markerData.focus === true && ( !isDefined(oldMarkerData.focus) || oldMarkerData.focus === false) || (isInitializing && markerData.focus === true)) {
-                // Reopen the popup when focus is still true
-                marker.openPopup();
-                updatedFocus = true;
+            markerData.focus = oldMarkerData.focus;
+            if (markerData.focus) {
+            	marker.openPopup();
+                _manageOpenPopup(marker, markerData, map);
+            } else {
+            	marker.closePopup();
             }
 
             // zIndexOffset adjustment
@@ -3298,6 +3298,24 @@ centerDirectiveTypes.forEach(function(directiveName) {
 
                         //$log.debug("updating map center...", center);
                         leafletScope.settingCenterFromScope = true;
+
+                    	//adding support for center offset, it can be a number or an array of two values where if it's a number
+                    	//it's the offset from the left and if it's an array the first position is the offset from the left and
+    					//the second one is from the top, if negative values are provided the orientation is reversed
+                        var centerPoint = [center.lat, center.lng];
+                        if (center.offset) {
+                        	var targetPoint;
+    						if (angular.isNumber(center.offset)) {
+    							targetPoint = map.project(centerPoint, center.zoom).subtract([center.offset / 2, 0]);
+    							centerPoint = map.unproject(targetPoint, center.zoom);
+    						} else if (angular.isArray(center.offset)) {
+    							targetPoint = map.project(centerPoint, center.zoom).subtract([center.offset[0] / 2, center.offset[1] / 2]);
+    							centerPoint = map.unproject(targetPoint, center.zoom);
+    						} else {
+    							$log.warn(errorHeader + " invalid 'center offset'");
+    						}
+                        }
+                        
                         map.setView([center.lat, center.lng], center.zoom);
                         leafletEvents.notifyCenterChangedToBounds(leafletScope, map);
                         $timeout(function() {
@@ -4640,6 +4658,15 @@ angular.module("leaflet-directive").directive('paths', function (leafletLogger, 
                                 return;
                             }
                             setPathOptions(leafletPath, pathData.type, pathData);
+                        	// Show label if defined
+                            if (isDefined(leafletPath) && leafletHelpers.LabelPlugin.isLoaded() && isDefined(pathData.label) && isDefined(pathData.label.message)) {
+                            	leafletPath.bindLabel(pathData.label.message, pathData.label.options);
+                            }
+
+                        	// bind popup if defined
+                            if (isDefined(leafletPath) && isDefined(pathData.message)) {
+                            	leafletPath.bindPopup(pathData.message, pathData.popupOptions);
+                            }
                         }, true);
                     };
 
