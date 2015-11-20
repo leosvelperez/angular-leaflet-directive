@@ -76,6 +76,25 @@ angular.module("leaflet-directive").factory('leafletPathsHelpers', function ($ro
         return true;
     };
 
+    var _isValidCustomPolygon = function (latlngs) {
+        if (!isArray(latlngs)) {
+            return false;
+        }
+        for (var i = 0; i < latlngs.length; i++) {
+        	var point = latlngs[i];
+
+        	if (isArray(point)) {
+		        for (var j = 0; j < point.length; j++) {
+		        	if (!isValidPoint(point[j])) return false;
+		        }
+	        }
+			else if (!isValidPoint(point)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     var pathTypes = {
         polyline: {
             isValid: function(pathData) {
@@ -115,7 +134,7 @@ angular.module("leaflet-directive").factory('leafletPathsHelpers', function ($ro
                 _updatePathOptions(path, data);
                 return;
             }
-        } ,
+        },
         polygon: {
             isValid: function(pathData) {
                 var latlngs = pathData.latlngs;
@@ -127,6 +146,18 @@ angular.module("leaflet-directive").factory('leafletPathsHelpers', function ($ro
             setPath: function(path, data) {
                 path.setLatLngs(_convertToLeafletLatLngs(data.latlngs));
                 _updatePathOptions(path, data);
+                return;
+            }
+        },
+        customPolygon: {
+            isValid: function(pathData) {
+                var latlngs = pathData.latlngs;
+            	return _isValidCustomPolygon(latlngs);
+            },
+            createPath: function(options, pathData) {
+            	return new L.Polygon(pathData.latlngs, options);
+            },
+            setPath: function() {
                 return;
             }
         },
