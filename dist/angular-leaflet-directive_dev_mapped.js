@@ -3017,7 +3017,7 @@ angular.module("leaflet-directive").factory('leafletPathsHelpers', function ($ro
                 return;
             }
 
-            return pathTypes[path.type].createPath(options);
+            return pathTypes[path.type].createPath(options, pathData);
         }
     };
 });
