@@ -3347,7 +3347,7 @@ centerDirectiveTypes.forEach(function(directiveName) {
     						}
                         }
                         
-                        map.setView([center.lat, center.lng], center.zoom);
+                        map.setView([centerPoint.lat, centerPoint.lng], center.zoom);
                         leafletEvents.notifyCenterChangedToBounds(leafletScope, map);
                         $timeout(function() {
                             leafletScope.settingCenterFromScope = false;
